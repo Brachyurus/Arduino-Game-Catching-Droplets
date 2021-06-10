@@ -1,4 +1,4 @@
-//2021.06.07
+//2021.06.10
 #include <Adafruit_GFX.h>
 #include <Adafruit_PCD8544.h>
 #include <avr/power.h>
@@ -76,9 +76,9 @@ byte button[] = {3, 2};
 int buttonCount = sizeof(button);
 bool lastState[2];
 int bounceDelay = 6;
+
 int buzzer = 5;
 int division = 2;
-
 int cratePos = 1;
 int cratePosCount = 4;
 
@@ -89,8 +89,7 @@ int circlePos[6] = {x, x, x, x, x, x};
 
 int trailCount = 4;
 int trailStep = 19;
-int randomNumber[6];
-int number;
+int randomNum[6];
 
 int y = 480;
 int cycleTime = y;
@@ -105,7 +104,6 @@ int maxCycleCount = z;
 int level = 1;
 int failCount = 0;
 
-
 void setup() {
   display.begin();
   display.clearDisplay();
@@ -119,8 +117,8 @@ void setup() {
   welcomeScreen();
 }
 
-
 void loop() {
+  generateRandomNum();
   if (cycleCount >= maxCycleCount) {
     cycleCount = 0;
     cycleTime = cycleTime * 0.95;
@@ -135,12 +133,10 @@ void loop() {
       circlePos[i]++;
     }
     if (circlePos[i] <= circlePosCount) {
-      display.fillRect(5 + i * trailStep, 15, 5, 26, WHITE);
-      display.drawBitmap(5 + i * trailStep, circlePos[i] * circleStep + 10, drop, 8, 6, BLACK);
-      display.display();
+      display.fillRect(6 + i * trailStep, 15, 5, 26, WHITE);
+      display.drawBitmap(6 + i * trailStep, circlePos[i] * circleStep + 10, drop, 8, 6, BLACK);
     } else {
-      display.fillRect(5 + i * trailStep, 15, 5, 26, WHITE);
-      display.display();
+      display.fillRect(6 + i * trailStep, 15, 5, 26, WHITE);
     }
   }
   if (circlePos[0] < 5 || circlePos[1] < 5 || circlePos[2] < 5 || circlePos[3] < 5 || circlePos[4] < 5 || circlePos[5] < 5) {
@@ -149,6 +145,7 @@ void loop() {
   for (int j = 0; j < cycleTime / trailCount / bounceDelay / division; j++) {
     for (int i = 0; i < trailCount; i++) {
       checkInputs();
+      display.display();
       if (!scoreTaken) {
         if (circlePos[i] == circlePosCount) {
           liveLost = true;
@@ -157,7 +154,7 @@ void loop() {
             tone(buzzer, 1760, 50 / division);
             scoreTaken = true;
             liveLost = false;
-            display.fillRect(5 + i * trailStep, 15, 5, 26, WHITE);
+            display.fillRect(6 + i * trailStep, 15, 5, 26, WHITE);
             display.display();
             updateScore();
           }
@@ -177,9 +174,7 @@ void loop() {
     }
   }
   scoreTaken = false;
-  generateRandomNumber();
 }
-
 
 void checkInputs() {
   for (int i = 0; i < buttonCount; i++) {
@@ -203,7 +198,6 @@ void checkInputs() {
   }
 }
 
-
 void updateEverything() {
   updateCratePos();
   updateScore();
@@ -211,36 +205,18 @@ void updateEverything() {
   drawOutlines();
 }
 
-
 void updateCratePos() {
-  int crateHeight = 41;
+  display.fillRect(3, 41, 68, 4, WHITE);
   if (cratePos == 1) {
-    display.drawBitmap(2, crateHeight, umbrella, 11, 4, BLACK);
-    display.drawBitmap(21, crateHeight, umbrella, 11, 4, WHITE);
-    display.drawBitmap(40, crateHeight, umbrella, 11, 4, WHITE);
-    display.drawBitmap(59, crateHeight, umbrella, 11, 4, WHITE);
-    display.display();
+    display.drawBitmap(3, 41, umbrella, 11, 4, BLACK);
   } else if (cratePos == 2) {
-    display.drawBitmap(2, crateHeight, umbrella, 11, 4, WHITE);
-    display.drawBitmap(21, crateHeight, umbrella, 11, 4, BLACK);
-    display.drawBitmap(40, crateHeight, umbrella, 11, 4, WHITE);
-    display.drawBitmap(59, crateHeight, umbrella, 11, 4, WHITE);
-    display.display();
+    display.drawBitmap(22, 41, umbrella, 11, 4, BLACK);
   } else if (cratePos == 3) {
-    display.drawBitmap(2, crateHeight, umbrella, 11, 4, WHITE);
-    display.drawBitmap(21, crateHeight, umbrella, 11, 4, WHITE);
-    display.drawBitmap(40, crateHeight, umbrella, 11, 4, BLACK);
-    display.drawBitmap(59, crateHeight, umbrella, 11, 4, WHITE);
-    display.display();
+    display.drawBitmap(41, 41, umbrella, 11, 4, BLACK);
   } else if (cratePos == 4) {
-    display.drawBitmap(2, crateHeight, umbrella, 11, 4, WHITE);
-    display.drawBitmap(21, crateHeight, umbrella, 11, 4, WHITE);
-    display.drawBitmap(40, crateHeight, umbrella, 11, 4, WHITE);
-    display.drawBitmap(59, crateHeight, umbrella, 11, 4, BLACK);
-    display.display();
+    display.drawBitmap(60, 41, umbrella, 11, 4, BLACK);
   }
 }
-
 
 void updateScore() {
   display.fillRect(0, 0, 38, 7, WHITE);
@@ -257,9 +233,7 @@ void updateScore() {
   } else {
     display.print(score);
   }
-  display.display();
 }
-
 
 void updateLives() {
   int livesX = 48;
@@ -273,15 +247,12 @@ void updateLives() {
   display.display();
 }
 
-
 void drawOutlines() {
   display.drawRect(0, 9, 74, 38, BLACK);
   for (int i = 0; i < trailCount; i++) {
-    display.drawBitmap(5 + i * trailStep, 10, dropStart, 8, 5, BLACK);
+    display.drawBitmap(6 + i * trailStep, 10, dropStart, 8, 5, BLACK);
   }
-  display.display();
 }
-
 
 void updateLevel() {
   int x = 77;
@@ -300,29 +271,26 @@ void updateLevel() {
   }
 }
 
-
-void generateRandomNumber() {
+void generateRandomNum() {
   int maxFails = 4;
   int randomVal = analogRead(A0);
-  randomNumber[1] = random(1, 100);
-  randomNumber[1] = randomNumber[1] * randomVal % 4;
-
-  if (randomNumber[1] != randomNumber[2] && randomNumber[1] != randomNumber[3] && randomNumber[1] != randomNumber[4] && randomNumber[1] != randomNumber[5]) {
-    circlePos[randomNumber[1]] = 0;
+  randomNum[1] = random(1, 100);
+  randomNum[1] = randomNum[1] * randomVal % 4;
+  if (randomNum[1] != randomNum[2] && randomNum[1] != randomNum[3] && randomNum[1] != randomNum[4] && randomNum[1] != randomNum[5]) {
+    circlePos[randomNum[1]] = 0;
     failCount = 0;
   } else {
     if (failCount < maxFails) {
       failCount++;
     } else {
-      generateRandomNumber();
+      generateRandomNum();
     }
   }
-  randomNumber[5] = randomNumber[4];
-  randomNumber[4] = randomNumber[3];
-  randomNumber[3] = randomNumber[2];
-  randomNumber[2] = randomNumber[1];
+  randomNum[5] = randomNum[4];
+  randomNum[4] = randomNum[3];
+  randomNum[3] = randomNum[2];
+  randomNum[2] = randomNum[1];
 }
-
 
 void holdScreen() {
   int blinkPeriod = 300 / division;
@@ -341,7 +309,6 @@ void holdScreen() {
   updateLives();
 }
 
-
 void welcomeScreen() {
   display.clearDisplay();
   display.setTextSize(2);
@@ -358,13 +325,10 @@ void welcomeScreen() {
   display.print("to start");
   display.display();  
   goToSleep();
-
-  display.clearDisplay();
-  display.display();
+  newGame();
   updateLevel();
   updateEverything();
 }
-
 
 void gameOverScreen() {
   display.clearDisplay();
@@ -376,7 +340,6 @@ void gameOverScreen() {
   display.setCursor(10, 31);
   display.setTextSize(1);
   display.print("Your Score:");
-  display.setCursor(10, 40);
   display.print(score);
   display.display();
   tone(buzzer, 587);
@@ -389,12 +352,10 @@ void gameOverScreen() {
   delay(400 / division);
   noTone(buzzer);
   goToSleep();
-
   newGame();
   updateLevel();
   updateEverything();
 }
-
 
 void newGame() {
   lives = 3;
@@ -408,7 +369,6 @@ void newGame() {
   display.display();
 }
 
-
 void goToSleep() {
   set_sleep_mode(SLEEP_MODE_PWR_DOWN);
   sleep_enable();
@@ -419,6 +379,5 @@ void goToSleep() {
   detachInterrupt(digitalPinToInterrupt(2));
   detachInterrupt(digitalPinToInterrupt(3));
 }
-
 
 void wakeUp() {}
